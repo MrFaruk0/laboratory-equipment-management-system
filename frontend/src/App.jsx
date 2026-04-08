@@ -1,0 +1,23 @@
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import MyReservationsPage from "./pages/MyReservationsPage";
+import MakeReservationPage from "./pages/MakeReservationPage";
+import ProfilePage from "./pages/ProfilePage";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/reservations" element={<MyReservationsPage />} />
+        <Route path="/make-reservation" element={<MakeReservationPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+export default App;
