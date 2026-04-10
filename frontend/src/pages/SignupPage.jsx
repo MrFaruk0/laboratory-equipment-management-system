@@ -6,29 +6,31 @@ function SignupPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
+    username: "",
     fullName: "",
     email: "",
     password: "",
   });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
-    setFormData({
-      ...formData,
-      [event.target.name]: event.target.value,
-    });
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+    setError("");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const user = await signupUser(
-      formData.fullName,
-      formData.email,
-      formData.password
-    );
-
-    if (user) {
+    try {
+      await signupUser(formData.username, formData.fullName, formData.email, formData.password);
       navigate("/login");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -41,6 +43,19 @@ function SignupPage() {
         </p>
 
         <form onSubmit={handleSubmit}>
+          <div style={fieldStyle}>
+            <label style={labelStyle}>Username</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              style={inputStyle}
+              placeholder="örn: ofaruk"
+            />
+          </div>
+
           <div style={fieldStyle}>
             <label style={labelStyle}>Full Name</label>
             <input
@@ -77,9 +92,15 @@ function SignupPage() {
             />
           </div>
 
-          <button type="submit" style={buttonStyle}>
-            Create Account
+          <button type="submit" style={buttonStyle} disabled={loading}>
+            {loading ? "Hesap oluşturuluyor..." : "Create Account"}
           </button>
+
+          {error && (
+            <p style={{ marginTop: "12px", color: "#dc2626", fontSize: "14px" }}>
+              ⚠ {error}
+            </p>
+          )}
         </form>
 
         <p style={{ marginTop: "18px", color: "#4b5563" }}>
