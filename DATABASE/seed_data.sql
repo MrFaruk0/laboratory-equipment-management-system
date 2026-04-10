@@ -1,12 +1,5 @@
--- ============================================================
--- seed_data.sql
--- Test / örnek verilerini veritabanına yükler.
--- ÖNCE schema.sql çalıştırılmış olmalıdır.
--- ============================================================
-
 USE lems_db;
 
--- Roller
 INSERT INTO roles (role_name) VALUES
     ('student'),
     ('assistant'),
@@ -37,3 +30,5 @@ INSERT INTO users (role_id, username, email, password_hash, full_name) VALUES
 INSERT INTO blocked_time_slots (equipment_id, start_time, end_time, reason) VALUES
     (1, '2025-04-14 09:00:00', '2025-04-14 11:00:00', 'EE301 Ders Saati'),
     (2, '2025-04-14 09:00:00', '2025-04-14 11:00:00', 'EE301 Ders Saati');
+
+SHOW TABLES;
