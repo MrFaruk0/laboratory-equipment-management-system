@@ -1,10 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 function Sidebar() {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useContext(AuthContext);
 
   const toggleProfilePopup = () => {
     setShowProfilePopup((prev) => !prev);
@@ -13,6 +15,7 @@ function Sidebar() {
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
+    logout();
     navigate("/login");
   };
 
@@ -47,8 +50,8 @@ function Sidebar() {
             backgroundColor: "#f8fbff",
           }}
         >
-          <p style={{ fontWeight: "bold", marginBottom: "4px" }}>John Doe</p>
-          <p style={{ fontSize: "12px", color: "#6b7280" }}>john@example.com</p>
+          <p style={{ fontWeight: "bold", marginBottom: "4px" }}>{user?.fullName || user?.username || "Kullanıcı"}</p>
+          <p style={{ fontSize: "12px", color: "#6b7280" }}>{user?.email || ""}</p>
         </div>
 
         {showProfilePopup && (
@@ -66,9 +69,9 @@ function Sidebar() {
               zIndex: 10,
             }}
           >
-            <p style={{ fontWeight: "bold", marginBottom: "4px" }}>John Doe</p>
+            <p style={{ fontWeight: "bold", marginBottom: "4px" }}>{user?.fullName || user?.username || "Kullanıcı"}</p>
             <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>
-              john@example.com
+              {user?.email || ""}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>

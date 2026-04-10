@@ -1,29 +1,34 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
+import { AuthContext } from "../context/AuthContext";
 
 function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
-    setFormData({
-      ...formData,
-      [event.target.name]: event.target.value,
-    });
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+    setError(""); // Yazarken hata mesajını temizle
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const user = await loginUser(formData.email, formData.password);
-
-    if (user) {
+    try {
+      const data = await loginUser(formData.email, formData.password);
+      login(data.token, data.user); // Token + kullanıcıyı context'e kaydet
       navigate("/reservations");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,9 +65,15 @@ function LoginPage() {
             />
           </div>
 
-          <button type="submit" style={buttonStyle}>
-            Login
+          <button type="submit" style={buttonStyle} disabled={loading}>
+            {loading ? "Giriş yapılıyor..." : "Login"}
           </button>
+
+          {error && (
+            <p style={{ marginTop: "12px", color: "#dc2626", fontSize: "14px" }}>
+              ⚠ {error}
+            </p>
+          )}
         </form>
 
         <p style={{ marginTop: "18px", color: "#4b5563" }}>

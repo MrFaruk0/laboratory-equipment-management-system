@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { changePassword } from "../services/authService";
+import { AuthContext } from "../context/AuthContext";
 
 function ProfilePage() {
+  const { user } = useContext(AuthContext);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
     newPassword: "",
@@ -19,19 +23,23 @@ function ProfilePage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
+    setSuccessMsg("");
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New password and confirm password do not match.");
+      setError("Yeni şifre ve onay şifresi eşleşmiyor.");
       return;
     }
 
-    const result = await changePassword(
-      passwordData.currentPassword,
-      passwordData.newPassword
-    );
-
-    if (result.success) {
-      alert(result.message);
+    try {
+      const result = await changePassword(
+        passwordData.currentPassword,
+        passwordData.newPassword
+      );
+      setSuccessMsg(result.message);
+    } catch (err) {
+      setError(err.message);
+      return;
     }
 
     setPasswordData({
@@ -54,10 +62,13 @@ function ProfilePage() {
 
       <div style={cardStyle}>
         <p style={{ marginBottom: "8px" }}>
-          <strong>Name:</strong> John Doe
+          <strong>Name:</strong> {user?.fullName || "-"}
+        </p>
+        <p style={{ marginBottom: "8px" }}>
+          <strong>Username:</strong> {user?.username || "-"}
         </p>
         <p style={{ marginBottom: "20px" }}>
-          <strong>Email:</strong> john@example.com
+          <strong>Email:</strong> {user?.email || "-"}
         </p>
 
         <button
@@ -108,6 +119,13 @@ function ProfilePage() {
             <button type="submit" style={buttonStyle}>
               Save Password
             </button>
+
+            {error && (
+              <p style={{ marginTop: "12px", color: "#dc2626", fontSize: "14px" }}>⚠ {error}</p>
+            )}
+            {successMsg && (
+              <p style={{ marginTop: "12px", color: "#16a34a", fontSize: "14px" }}>✓ {successMsg}</p>
+            )}
           </form>
         )}
       </div>
