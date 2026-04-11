@@ -1,59 +1,70 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import { getEquipments } from "../services/equipmentService";
+import { createReservation } from "../services/reservationService";
 import { useEffect } from "react";
-import { ReservationContext } from "../context/ReservationContext";
 
 function MakeReservationPage() {
   const [selectedEquipmentId, setSelectedEquipmentId] = useState("");
-  const [selectedDateTime, setSelectedDateTime] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [equipments, setEquipments] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const { addReservation, reservations } = useContext(ReservationContext);
   const navigate = useNavigate();
 
   useEffect(() => {
-  async function loadEquipments() {
-    const data = await getEquipments();
-    setEquipments(data);
-  }
-
-  loadEquipments();
-}, []);
+    async function loadEquipments() {
+      try {
+        const data = await getEquipments();
+        setEquipments(data);
+      } catch (err) {
+        setError(err.message || "Ekipmanları yükleyemedi.");
+      }
+    }
+    loadEquipments();
+  }, []);
 
   const selectedEquipment = equipments.find(
-  (equipment) => equipment.id === Number(selectedEquipmentId)
-);
-
-  const isReserved = reservations.some(
-    (reservation) =>
-      reservation.equipment === selectedEquipment?.name &&
-      reservation.datetime === selectedDateTime
+    (equipment) => equipment.id === Number(selectedEquipmentId)
   );
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
+    setError("");
+    setLoading(true);
 
-    if (!selectedEquipment || !selectedDateTime) {
+    if (!selectedEquipment || !startTime || !endTime) {
+      setError("Tüm alanları doldurunuz.");
+      setLoading(false);
       return;
     }
 
-    if (isReserved) {
-      alert("This equipment is already reserved for the selected date and time.");
+    if (new Date(startTime) >= new Date(endTime)) {
+      setError("Bitiş zamanı başlangıç zamanından sonra olmalıdır.");
+      setLoading(false);
       return;
     }
 
-    addReservation({
-      equipment: selectedEquipment.name,
-      location: selectedEquipment.location,
-      datetime: selectedDateTime,
-      past: false,
-    });
+    if (new Date(startTime) < new Date()) {
+      setError("Geçmiş bir tarihte rezervasyon yapılamaz.");
+      setLoading(false);
+      return;
+    }
 
-    setSelectedEquipmentId("");
-    setSelectedDateTime("");
-    navigate("/reservations");
+    try {
+      await createReservation(selectedEquipment.id, startTime, endTime);
+      setSelectedEquipmentId("");
+      setStartTime("");
+      setEndTime("");
+      navigate("/reservations");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -94,32 +105,39 @@ function MakeReservationPage() {
         </div>
 
         <div style={{ marginBottom: "20px" }}>
-          <label style={labelStyle}>Date and Time</label>
+          <label style={labelStyle}>Start Date & Time</label>
           <input
             type="datetime-local"
-            value={selectedDateTime}
-            onChange={(event) => setSelectedDateTime(event.target.value)}
+            value={startTime}
+            onChange={(event) => setStartTime(event.target.value)}
             required
             style={inputStyle}
           />
-
-          {isReserved && (
-            <p style={{ color: "#dc2626", marginTop: "8px", fontSize: "14px" }}>
-              This equipment is already reserved for the selected date and time.
-            </p>
-          )}
         </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <label style={labelStyle}>End Date & Time</label>
+          <input
+            type="datetime-local"
+            value={endTime}
+            onChange={(event) => setEndTime(event.target.value)}
+            required
+            style={inputStyle}
+          />
+        </div>
+
+        {error && (
+          <p style={{ color: "#dc2626", marginBottom: "12px", fontSize: "14px" }}>
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
-          style={{
-            ...buttonStyle,
-            opacity: isReserved ? 0.6 : 1,
-            cursor: isReserved ? "not-allowed" : "pointer",
-          }}
-          disabled={isReserved}
+          style={buttonStyle}
+          disabled={loading}
         >
-          Reserve
+          {loading ? "Rezervasyon oluşturuluyor..." : "Reserve"}
         </button>
       </form>
     </MainLayout>
@@ -150,13 +168,14 @@ const inputStyle = {
 };
 
 const buttonStyle = {
-  padding: "12px 18px",
+  width: "100%",
+  padding: "12px",
+  backgroundColor: "#3b82f6",
+  color: "#fff",
   border: "none",
   borderRadius: "8px",
-  backgroundColor: "#2563eb",
-  color: "#ffffff",
-  cursor: "pointer",
   fontWeight: "bold",
+  cursor: "pointer",
 };
 
 export default MakeReservationPage;

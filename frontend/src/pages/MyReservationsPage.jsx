@@ -1,14 +1,35 @@
-import { useState, useContext } from "react";
+import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
-import { ReservationContext } from "../context/ReservationContext";
+import { getReservations } from "../services/reservationService";
 
 function MyReservationsPage() {
   const [showPastReservations, setShowPastReservations] = useState(false);
-  const { reservations } = useContext(ReservationContext);
+  const [reservations, setReservations] = useState({ active: [], past: [] });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredReservations = showPastReservations
-    ? reservations
-    : reservations.filter((reservation) => !reservation.past);
+  useEffect(() => {
+    async function loadReservations() {
+      try {
+        const data = await getReservations();
+        setReservations(data);
+      } catch (err) {
+        setError(err.message || "Rezervasyonları yükleyemedi.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadReservations();
+  }, []);
+
+  const displayedReservations = showPastReservations
+    ? reservations.past
+    : reservations.active;
+
+  const formatDateTime = (dateTimeString) => {
+    const date = new Date(dateTimeString);
+    return date.toLocaleString("tr-TR");
+  };
 
   return (
     <MainLayout>
@@ -37,58 +58,68 @@ function MyReservationsPage() {
           Show Past Reservations
         </label>
 
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            backgroundColor: "#ffffff",
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={tableHeaderStyle}>Equipment</th>
-              <th style={tableHeaderStyle}>Location</th>
-              <th style={tableHeaderStyle}>Date & Time</th>
-              <th style={tableHeaderStyle}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredReservations.length > 0 ? (
-              filteredReservations.map((reservation) => (
-                <tr
-                  key={reservation.id}
-                  style={reservation.past ? pastRowStyle : {}}
-                >
-                  <td style={tableCellStyle}>{reservation.equipment}</td>
-                  <td style={tableCellStyle}>{reservation.location}</td>
-                  <td style={tableCellStyle}>{reservation.datetime}</td>
-                  <td style={tableCellStyle}>
-                    <span
-                      style={
-                        reservation.past ? pastBadgeStyle : activeBadgeStyle
-                      }
-                    >
-                      {reservation.past ? "Past" : "Active"}
-                    </span>
+        {error && (
+          <p style={{ color: "#dc2626", marginBottom: "12px" }}>{error}</p>
+        )}
+
+        {loading ? (
+          <p>Yükleniyor...</p>
+        ) : (
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              backgroundColor: "#ffffff",
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={tableHeaderStyle}>Equipment</th>
+                <th style={tableHeaderStyle}>Location</th>
+                <th style={tableHeaderStyle}>Start Time</th>
+                <th style={tableHeaderStyle}>End Time</th>
+                <th style={tableHeaderStyle}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayedReservations.length > 0 ? (
+                displayedReservations.map((reservation) => (
+                  <tr
+                    key={reservation.id}
+                    style={showPastReservations ? pastRowStyle : {}}
+                  >
+                    <td style={tableCellStyle}>{reservation.equipment}</td>
+                    <td style={tableCellStyle}>{reservation.location}</td>
+                    <td style={tableCellStyle}>{formatDateTime(reservation.startTime)}</td>
+                    <td style={tableCellStyle}>{formatDateTime(reservation.endTime)}</td>
+                    <td style={tableCellStyle}>
+                      <span
+                        style={
+                          showPastReservations ? pastBadgeStyle : activeBadgeStyle
+                        }
+                      >
+                        {showPastReservations ? "Past" : "Active"}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td
+                    colSpan="5"
+                    style={{
+                      ...tableCellStyle,
+                      textAlign: "center",
+                      color: "#6b7280",
+                    }}
+                  >
+                    No reservations found.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td
-                  colSpan="4"
-                  style={{
-                    ...tableCellStyle,
-                    textAlign: "center",
-                    color: "#6b7280",
-                  }}
-                >
-                  No reservations found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </MainLayout>
   );
@@ -107,6 +138,7 @@ const tableHeaderStyle = {
   padding: "14px 12px",
   borderBottom: "1px solid #e5e7eb",
   backgroundColor: "#f8fafc",
+  fontWeight: "bold",
 };
 
 const tableCellStyle = {
