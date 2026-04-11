@@ -3,6 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 
 const authRoutes = require("./routes/auth");
+const equipmentRoutes = require("./routes/equipment");
+const reservationRoutes = require("./routes/reservations");
 
 const app = express();
 
@@ -14,6 +16,8 @@ app.use(express.json());
 
 // Route'lar
 app.use("/api/auth", authRoutes);
+app.use("/api/equipment", equipmentRoutes);
+app.use("/api/reservations", reservationRoutes);
 
 // Sağlık kontrolü
 app.get("/", (req, res) => {
