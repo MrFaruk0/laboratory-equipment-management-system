@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
@@ -15,15 +16,47 @@ function LoginPage() {
       ...formData,
       [event.target.name]: event.target.value,
     });
+=======
+import { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { loginUser } from "../services/authService";
+import { AuthContext } from "../context/AuthContext";
+
+function LoginPage() {
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
+
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (event) => {
+    setFormData({ ...formData, [event.target.name]: event.target.value });
+    setError(""); // Yazarken hata mesajını temizle
+>>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+<<<<<<< HEAD
 
     const user = await loginUser(formData.email, formData.password);
 
     if (user) {
       navigate("/reservations");
+=======
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await loginUser(formData.email, formData.password);
+      login(data.token, data.user); // Token + kullanıcıyı context'e kaydet
+      navigate("/reservations");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+>>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
     }
   };
 
@@ -60,9 +93,21 @@ function LoginPage() {
             />
           </div>
 
+<<<<<<< HEAD
           <button type="submit" style={buttonStyle}>
             Login
           </button>
+=======
+          <button type="submit" style={buttonStyle} disabled={loading}>
+            {loading ? "Giriş yapılıyor..." : "Login"}
+          </button>
+
+          {error && (
+            <p style={{ marginTop: "12px", color: "#dc2626", fontSize: "14px" }}>
+              ⚠ {error}
+            </p>
+          )}
+>>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
         </form>
 
         <p style={{ marginTop: "18px", color: "#4b5563" }}>
