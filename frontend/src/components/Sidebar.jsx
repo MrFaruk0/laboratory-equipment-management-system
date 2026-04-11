@@ -1,19 +1,12 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-import { useState } from "react";
-=======
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
->>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
 
 function Sidebar() {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-<<<<<<< HEAD
-=======
   const { user, logout } = useContext(AuthContext);
->>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
 
   const toggleProfilePopup = () => {
     setShowProfilePopup((prev) => !prev);
@@ -22,10 +15,7 @@ function Sidebar() {
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-<<<<<<< HEAD
-=======
     logout();
->>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
     navigate("/login");
   };
 
@@ -60,13 +50,12 @@ function Sidebar() {
             backgroundColor: "#f8fbff",
           }}
         >
-<<<<<<< HEAD
-          <p style={{ fontWeight: "bold", marginBottom: "4px" }}>John Doe</p>
-          <p style={{ fontSize: "12px", color: "#6b7280" }}>john@example.com</p>
-=======
-          <p style={{ fontWeight: "bold", marginBottom: "4px" }}>{user?.fullName || user?.username || "Kullanıcı"}</p>
-          <p style={{ fontSize: "12px", color: "#6b7280" }}>{user?.email || ""}</p>
->>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
+          <p style={{ fontWeight: "bold", marginBottom: "4px" }}>
+            {user?.fullName || "User"}
+          </p>
+          <p style={{ fontSize: "12px", color: "#6b7280" }}>
+            {user?.email || "No email"}
+          </p>
         </div>
 
         {showProfilePopup && (
@@ -84,15 +73,11 @@ function Sidebar() {
               zIndex: 10,
             }}
           >
-<<<<<<< HEAD
-            <p style={{ fontWeight: "bold", marginBottom: "4px" }}>John Doe</p>
+            <p style={{ fontWeight: "bold", marginBottom: "4px" }}>
+              {user?.fullName || "User"}
+            </p>
             <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>
-              john@example.com
-=======
-            <p style={{ fontWeight: "bold", marginBottom: "4px" }}>{user?.fullName || user?.username || "Kullanıcı"}</p>
-            <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>
-              {user?.email || ""}
->>>>>>> 1d192afabfc154b0071f9009f1bef058af54ab99
+              {user?.email || "No email"}
             </p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
