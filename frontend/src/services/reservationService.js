@@ -69,3 +69,21 @@ export async function cancelReservation(id) {
   }
   return data;
 }
+export async function getReservationsByEquipment(equipmentId) {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/equipment/${equipmentId}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Equipment reservations could not load.");
+  }
+
+  return data;
+}
