@@ -49,7 +49,7 @@ router.post("/", authMiddleware, async (req, res) => {
     }
 
     const [equipmentCheck] = await pool.query(
-      "SELECT equipment_id FROM equipment WHERE equipment_id = ?",
+      "SELECT equipment_id, quantity, faulty_count FROM equipment WHERE equipment_id = ?",
       [equipmentId]
     );
 
@@ -57,9 +57,13 @@ router.post("/", authMiddleware, async (req, res) => {
       return res.status(404).json({ message: "Ekipman bulunamadı." });
     }
 
-    const [conflicts] = await pool.query(
+    const equipment = equipmentCheck[0];
+    const workingQuantity = Math.max(0, equipment.quantity - equipment.faulty_count);
+
+    // Count how many units are already reserved in this time slot
+    const [reservationCount] = await pool.query(
       `
-      SELECT reservation_id FROM reservations
+      SELECT COUNT(*) as reserved_count FROM reservations
       WHERE equipment_id = ?
         AND status = 'active'
         AND start_time < ?
@@ -68,9 +72,13 @@ router.post("/", authMiddleware, async (req, res) => {
       [equipmentId, endTime, startTime]
     );
 
-    if (conflicts.length > 0) {
+    const reservedInSlot = reservationCount[0].reserved_count;
+    const availableInSlot = workingQuantity - reservedInSlot;
+
+    // Only reject if no units are available
+    if (availableInSlot <= 0) {
       return res.status(409).json({
-        message: "Bu zaman aralığında çakışan bir rezervasyon var.",
+        message: "Bu zaman aralığında Bu ekipman için mevcut birim kalmadı.",
       });
     }
 

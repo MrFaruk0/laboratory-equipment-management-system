@@ -68,6 +68,8 @@ router.get("/equipment", async (req, res) => {
         e.equipment_code,
         e.status,
         e.description,
+        e.quantity,
+        e.faulty_count,
         e.lab_id,
         l.lab_name,
         l.building,
@@ -83,6 +85,8 @@ router.get("/equipment", async (req, res) => {
       code: eq.equipment_code,
       status: eq.status,
       description: eq.description,
+      quantity: eq.quantity,
+      faultyCount: eq.faulty_count,
       labId: eq.lab_id,
       labName: eq.lab_name,
       building: eq.building,
@@ -99,7 +103,7 @@ router.get("/equipment", async (req, res) => {
 // POST /api/admin/equipment — Add new equipment
 // ─────────────────────────────────────────────
 router.post("/equipment", async (req, res) => {
-  const { name, code, labId, status, description } = req.body;
+  const { name, code, labId, status, description, quantity, faultyCount } = req.body;
 
   if (!name || !code || !labId) {
     return res.status(400).json({ message: "Ekipman adı, kodu ve laboratuvar zorunludur." });
@@ -107,9 +111,9 @@ router.post("/equipment", async (req, res) => {
 
   try {
     const [result] = await pool.query(
-      `INSERT INTO equipment (equipment_name, equipment_code, lab_id, status, description)
-       VALUES (?, ?, ?, ?, ?)`,
-      [name, code, labId, status || "available", description || null]
+      `INSERT INTO equipment (equipment_name, equipment_code, lab_id, status, description, quantity, faulty_count)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [name, code, labId, status || "available", description || null, quantity || 1, faultyCount || 0]
     );
 
     res.status(201).json({ message: "Ekipman eklendi.", equipmentId: result.insertId });
@@ -126,7 +130,7 @@ router.post("/equipment", async (req, res) => {
 // PUT /api/admin/equipment/:id — Edit equipment
 // ─────────────────────────────────────────────
 router.put("/equipment/:id", async (req, res) => {
-  const { name, code, labId, status, description } = req.body;
+  const { name, code, labId, status, description, quantity, faultyCount } = req.body;
   const equipmentId = req.params.id;
 
   if (!name || !code || !labId || !status) {
@@ -136,9 +140,9 @@ router.put("/equipment/:id", async (req, res) => {
   try {
     const [result] = await pool.query(
       `UPDATE equipment
-       SET equipment_name = ?, equipment_code = ?, lab_id = ?, status = ?, description = ?
+       SET equipment_name = ?, equipment_code = ?, lab_id = ?, status = ?, description = ?, quantity = ?, faulty_count = ?
        WHERE equipment_id = ?`,
-      [name, code, labId, status, description || null, equipmentId]
+      [name, code, labId, status, description || null, quantity || 1, faultyCount || 0, equipmentId]
     );
 
     if (result.affectedRows === 0) {
@@ -188,9 +192,9 @@ router.put("/equipment/:id/status", async (req, res) => {
 // ─────────────────────────────────────────────
 router.delete("/equipment/:id", async (req, res) => {
   try {
-    // Cancel related active reservations first
+    // Delete all reservations for this equipment first (to avoid foreign key constraints)
     await pool.query(
-      "UPDATE reservations SET status = 'cancelled' WHERE equipment_id = ? AND status = 'active'",
+      "DELETE FROM reservations WHERE equipment_id = ?",
       [req.params.id]
     );
 
@@ -203,10 +207,10 @@ router.delete("/equipment/:id", async (req, res) => {
       return res.status(404).json({ message: "Ekipman bulunamadı." });
     }
 
-    res.json({ message: "Ekipman silindi." });
+    res.json({ message: "Ekipman ve ilgili tüm rezervasyonlar silindi." });
   } catch (err) {
     console.error("[ADMIN DELETE EQUIPMENT ERROR]", err);
-    res.status(500).json({ message: "Sunucu hatası." });
+    res.status(500).json({ message: "Sunucu hatası: " + err.message });
   }
 });
 

@@ -11,14 +11,12 @@ INSERT INTO laboratories (lab_name, building, room_no) VALUES
     ('Elektronik Lab',  'Mühendislik Binası', 'B-201'),
     ('Bilgisayar Lab',  'Mühendislik Binası', 'B-105');
 
--- Ekipmanlar (aynı türden birden fazla unit desteklenir — equipment_code unique ID'dir)
-INSERT INTO equipment (lab_id, equipment_name, equipment_code, status) VALUES
-    (1, 'Osiloskop',        'OSC-001',  'available'),
-    (1, 'Osiloskop',        'OSC-002',  'available'),
-    (1, 'Multimetre',       'MULT-001', 'available'),
-    (2, 'Raspberry Pi Kit', 'RPI-001',  'available'),
-    (2, 'Arduino Kit',      'ARD-001',  'available'),
-    (2, 'Arduino Kit',      'ARD-002',  'maintenance');
+-- Ekipmanlar (quantity ile birden fazla unit desteklenir)
+INSERT INTO equipment (lab_id, equipment_name, equipment_code, status, quantity, faulty_count) VALUES
+    (1, 'Osiloskop',        'OSC-001',  'available', 2, 0),
+    (1, 'Multimetre',       'MULT-001', 'available', 5, 1),
+    (2, 'Raspberry Pi Kit', 'RPI-001',  'available', 3, 0),
+    (2, 'Arduino Kit',      'ARD-001',  'available', 4, 1);
 
 -- Kullanıcılar (password_hash gerçek uygulamada bcrypt hash olacak)
 INSERT INTO users (role_id, username, email, password_hash, full_name) VALUES

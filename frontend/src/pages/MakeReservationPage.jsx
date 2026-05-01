@@ -24,6 +24,7 @@ function MakeReservationPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [equipments, setEquipments] = useState([]);
   const [equipmentReservations, setEquipmentReservations] = useState([]);
+  const [slotAvailability, setSlotAvailability] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -63,6 +64,24 @@ function MakeReservationPage() {
   const selectedEquipment = equipments.find(
     (equipment) => equipment.id === Number(selectedEquipmentId)
   );
+
+  const getSlotKey = (date, slot) => `${date}-${slot.start}-${slot.end}`;
+
+  const getAvailableInSlot = (date, slot) => {
+    if (!selectedEquipment) return 0;
+
+    const workingQuantity = Math.max(0, selectedEquipment.quantity - selectedEquipment.faultyCount);
+    const slotStart = new Date(`${date}T${slot.start}:00`);
+    const slotEnd = new Date(`${date}T${slot.end}:00`);
+
+    const reservedInSlot = equipmentReservations.filter((reservation) => {
+      const reservationStart = new Date(reservation.start_time);
+      const reservationEnd = new Date(reservation.end_time);
+      return reservationStart < slotEnd && reservationEnd > slotStart;
+    }).length;
+
+    return Math.max(0, workingQuantity - reservedInSlot);
+  };
 
   const formatDate = (date) => {
     const year = date.getFullYear();
@@ -166,7 +185,10 @@ function MakeReservationPage() {
   };
 
   const handleSlotSelect = (slot) => {
-    if (!selectedDate || isSlotReserved(selectedDate, slot)) return;
+    if (!selectedDate) return;
+    
+    const available = getAvailableInSlot(selectedDate, slot);
+    if (available === 0) return;
 
     setSelectedSlot(slot);
     setError("");
@@ -178,6 +200,11 @@ function MakeReservationPage() {
 
     if (!selectedEquipment || !selectedDate || !selectedSlot) {
       setError("Lütfen ekipman, tarih ve saat seçiniz.");
+      return;
+    }
+
+    if (selectedEquipment.availableTotal === 0) {
+      setError("Bu ekipman şu anda mevcut değildir.");
       return;
     }
 
@@ -224,7 +251,7 @@ function MakeReservationPage() {
             <option value="">Select equipment</option>
             {equipments.map((equipment) => (
               <option key={equipment.id} value={equipment.id}>
-                {equipment.name} (ID: {equipment.id})
+                {equipment.name} - {equipment.availableTotal || 0} available
               </option>
             ))}
           </select>
@@ -239,6 +266,20 @@ function MakeReservationPage() {
             style={inputStyle}
           />
         </div>
+
+        {selectedEquipment && (
+          <div style={{ marginBottom: "20px", padding: "12px", backgroundColor: "#f0f9ff", borderRadius: "8px", border: "1px solid #bfdbfe" }}>
+            <p style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#1e40af" }}>
+              <strong>Total Quantity:</strong> {selectedEquipment.quantity}
+            </p>
+            <p style={{ margin: "0 0 8px 0", fontSize: "14px", color: "#1e40af" }}>
+              <strong>Faulty Units:</strong> {selectedEquipment.faultyCount}
+            </p>
+            <p style={{ margin: "0", fontSize: "14px", color: selectedEquipment.availableTotal > 0 ? "#166534" : "#991b1b" }}>
+              <strong>Available for Reservation:</strong> {selectedEquipment.availableTotal > 0 ? selectedEquipment.availableTotal : "0 - All equipment is broken or being maintained"}
+            </p>
+          </div>
+        )}
 
         {selectedEquipmentId && (
           <>
@@ -308,10 +349,10 @@ function MakeReservationPage() {
 
                 <div style={slotGridStyle}>
                   {WORKING_HOURS.map((slot) => {
-                    const reserved = isSlotReserved(selectedDate, slot);
                     const slotStart = new Date(`${selectedDate}T${slot.start}:00`);
                     const isPastSlot = slotStart < new Date();
-                    const disabled = reserved || isPastSlot;
+                    const available = getAvailableInSlot(selectedDate, slot);
+                    const disabled = available === 0 || isPastSlot;
                     const isSelected =
                       selectedSlot?.start === slot.start &&
                       selectedSlot?.end === slot.end;
@@ -334,6 +375,10 @@ function MakeReservationPage() {
                         }}
                       >
                         {slot.start} - {slot.end}
+                        <br />
+                        <span style={{ fontSize: "12px" }}>
+                          {disabled ? (available === 0 ? "No stock" : "Past") : `${available} available`}
+                        </span>
                       </button>
                     );
                   })}

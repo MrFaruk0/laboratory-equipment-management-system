@@ -34,6 +34,8 @@ CREATE TABLE equipment (
     equipment_code VARCHAR(50)  NOT NULL UNIQUE,
     status         ENUM('available','in_use','maintenance','faulty') DEFAULT 'available',
     description    TEXT,
+    quantity       INT          DEFAULT 1,
+    faulty_count   INT          DEFAULT 0,
     CONSTRAINT fk_equipment_lab
         FOREIGN KEY (lab_id) REFERENCES laboratories(lab_id)
 );

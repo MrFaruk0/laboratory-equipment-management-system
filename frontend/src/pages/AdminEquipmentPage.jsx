@@ -31,7 +31,7 @@ function StatusBadge({ status }) {
   );
 }
 
-const emptyForm = { name: "", code: "", labId: "", status: "available", description: "" };
+const emptyForm = { name: "", code: "", labId: "", status: "available", description: "", quantity: 1, faultyCount: 0 };
 
 function EquipmentModal({ labs, initial, onClose, onSave }) {
   const [form, setForm] = useState(initial || emptyForm);
@@ -68,6 +68,8 @@ function EquipmentModal({ labs, initial, onClose, onSave }) {
           { label: "Name", field: "name", type: "text" },
           { label: "Code", field: "code", type: "text" },
           { label: "Description", field: "description", type: "text" },
+          { label: "Quantity", field: "quantity", type: "number" },
+          { label: "Faulty Count", field: "faultyCount", type: "number" },
         ].map(({ label, field, type }) => (
           <div key={field} style={{ marginBottom: "14px" }}>
             <label style={labelStyle}>{label}</label>
@@ -216,14 +218,14 @@ function AdminEquipmentPage() {
           <table style={tableStyle}>
             <thead>
               <tr style={{ background: "#f9fafb" }}>
-                {["Name", "Code", "Lab", "Status", "Actions"].map((h) => (
+                {["Name", "Code", "Lab", "Qty / Faulty", "Status", "Actions"].map((h) => (
                   <th key={h} style={thStyle}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={5} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>No equipment found.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>No equipment found.</td></tr>
               )}
               {filtered.map((eq) => (
                 <tr key={eq.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
@@ -235,6 +237,10 @@ function AdminEquipmentPage() {
                   <td style={tdStyle}>
                     <div>{eq.labName}</div>
                     <div style={{ fontSize: "12px", color: "#9ca3af" }}>{eq.building} – Room {eq.roomNo}</div>
+                  </td>
+                  <td style={tdStyle}>
+                    <div style={{ fontSize: "14px", fontWeight: "600" }}>{eq.quantity} / {eq.faultyCount}</div>
+                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>Available: {Math.max(0, eq.quantity - eq.faultyCount)}</div>
                   </td>
                   <td style={tdStyle}>
                     <select

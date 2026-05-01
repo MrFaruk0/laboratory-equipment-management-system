@@ -23,7 +23,7 @@ function MyReservationsPage() {
   }, []);
 
   const displayedReservations = showPastReservations
-    ? reservations.past
+    ? [...reservations.active, ...reservations.past]
     : reservations.active;
 
   const formatDateTime = (dateTimeString) => {
@@ -83,26 +83,29 @@ function MyReservationsPage() {
             </thead>
             <tbody>
               {displayedReservations.length > 0 ? (
-                displayedReservations.map((reservation) => (
-                  <tr
-                    key={reservation.id}
-                    style={showPastReservations ? pastRowStyle : {}}
-                  >
-                    <td style={tableCellStyle}>{reservation.equipment}</td>
-                    <td style={tableCellStyle}>{reservation.location}</td>
-                    <td style={tableCellStyle}>{formatDateTime(reservation.startTime)}</td>
-                    <td style={tableCellStyle}>{formatDateTime(reservation.endTime)}</td>
-                    <td style={tableCellStyle}>
-                      <span
-                        style={
-                          showPastReservations ? pastBadgeStyle : activeBadgeStyle
-                        }
-                      >
-                        {showPastReservations ? "Past" : "Active"}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                displayedReservations.map((reservation, index) => {
+                  const isPastReservation = index >= reservations.active.length && showPastReservations;
+                  return (
+                    <tr
+                      key={reservation.id}
+                      style={isPastReservation ? pastRowStyle : {}}
+                    >
+                      <td style={tableCellStyle}>{reservation.equipment}</td>
+                      <td style={tableCellStyle}>{reservation.location}</td>
+                      <td style={tableCellStyle}>{formatDateTime(reservation.startTime)}</td>
+                      <td style={tableCellStyle}>{formatDateTime(reservation.endTime)}</td>
+                      <td style={tableCellStyle}>
+                        <span
+                          style={
+                            isPastReservation ? pastBadgeStyle : activeBadgeStyle
+                          }
+                        >
+                          {isPastReservation ? "Past" : "Active"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
