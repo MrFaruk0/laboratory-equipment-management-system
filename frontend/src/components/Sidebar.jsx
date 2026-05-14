@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 function Sidebar() {
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, isAdmin } = useContext(AuthContext);
+  const { t, toggleLanguage } = useLanguage();
 
   const toggleProfilePopup = () => setShowProfilePopup((prev) => !prev);
 
@@ -28,9 +30,39 @@ function Sidebar() {
           position: "relative",
         }}
       >
-        <h2 style={{ marginBottom: "18px", fontSize: "28px", color: "#1d4ed8", letterSpacing: "0.5px" }}>
-          LEMS
-        </h2>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
+          <h2 style={{ fontSize: "28px", color: "#1d4ed8", letterSpacing: "0.5px", margin: 0 }}>
+            LEMS
+          </h2>
+
+          {/* Language Toggle Button */}
+          <button
+            onClick={toggleLanguage}
+            title="Switch Language"
+            style={{
+              padding: "4px 10px",
+              fontSize: "12px",
+              fontWeight: "700",
+              border: "1.5px solid #1d4ed8",
+              borderRadius: "8px",
+              background: "transparent",
+              color: "#1d4ed8",
+              cursor: "pointer",
+              letterSpacing: "0.5px",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#1d4ed8";
+              e.currentTarget.style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#1d4ed8";
+            }}
+          >
+            {t("lang.toggle")}
+          </button>
+        </div>
 
         <div
           onClick={toggleProfilePopup}
@@ -67,7 +99,7 @@ function Sidebar() {
           <div
             style={{
               position: "absolute",
-              top: "128px",
+              top: "148px",
               left: "0",
               width: "100%",
               backgroundColor: "#ffffff",
@@ -81,12 +113,12 @@ function Sidebar() {
             <p style={{ fontWeight: "bold", marginBottom: "4px" }}>{user?.fullName || "User"}</p>
             <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>{user?.email || "No email"}</p>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              <Link to="/profile" onClick={() => setShowProfilePopup(false)}>Go to Profile</Link>
+              <Link to="/profile" onClick={() => setShowProfilePopup(false)}>{t("sidebar.goToProfile")}</Link>
               <button
                 onClick={handleLogout}
                 style={{ textAlign: "left", background: "none", border: "none", color: "#dc2626", cursor: "pointer", padding: 0, fontSize: "14px" }}
               >
-                Logout
+                {t("sidebar.logout")}
               </button>
             </div>
           </div>
@@ -96,13 +128,13 @@ function Sidebar() {
       <nav style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
         {/* Regular user navigation */}
         <Link to="/reservations" style={isActive("/reservations") ? activeLinkStyle : navLinkStyle}>
-          My Reservations
+          {t("sidebar.myReservations")}
         </Link>
         <Link to="/make-reservation" style={isActive("/make-reservation") ? activeLinkStyle : navLinkStyle}>
-          Make Reservation
+          {t("sidebar.makeReservation")}
         </Link>
         <Link to="/profile" style={isActive("/profile") ? activeLinkStyle : navLinkStyle}>
-          Profile
+          {t("sidebar.profile")}
         </Link>
 
         {/* Admin navigation */}
@@ -119,19 +151,19 @@ function Sidebar() {
                 paddingLeft: "14px",
               }}
             >
-              Admin Panel
+              {t("sidebar.adminPanel")}
             </div>
             <Link to="/admin" style={isActive("/admin") ? activeAdminLinkStyle : adminLinkStyle}>
-              🏠 Dashboard
+              {t("sidebar.dashboard")}
             </Link>
             <Link to="/admin/equipment" style={isActive("/admin/equipment") ? activeAdminLinkStyle : adminLinkStyle}>
-              🔧 Equipment
+              {t("sidebar.equipment")}
             </Link>
             <Link to="/admin/reservations" style={isActive("/admin/reservations") ? activeAdminLinkStyle : adminLinkStyle}>
-              📋 All Reservations
+              {t("sidebar.allReservations")}
             </Link>
             <Link to="/admin/users" style={isActive("/admin/users") ? activeAdminLinkStyle : adminLinkStyle}>
-              👥 Users
+              {t("sidebar.users")}
             </Link>
           </>
         )}

@@ -2,9 +2,11 @@ import { useState, useContext } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { changePassword } from "../services/authService";
 import { AuthContext } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 function ProfilePage() {
   const { user } = useContext(AuthContext);
+  const { t } = useLanguage();
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -27,7 +29,7 @@ function ProfilePage() {
     setSuccessMsg("");
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError("Yeni şifre ve onay şifresi eşleşmiyor.");
+      setError(t("profile.errMismatch"));
       return;
     }
 
@@ -54,34 +56,34 @@ function ProfilePage() {
   return (
     <MainLayout>
       <div style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>My Profile</h1>
+        <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>{t("profile.title")}</h1>
         <p style={{ color: "#6b7280" }}>
-          View your account details and update your password.
+          {t("profile.subtitle")}
         </p>
       </div>
 
       <div style={cardStyle}>
         <p style={{ marginBottom: "8px" }}>
-          <strong>Name:</strong> {user?.fullName || "-"}
+          <strong>{t("profile.name")}</strong> {user?.fullName || "-"}
         </p>
         <p style={{ marginBottom: "8px" }}>
-          <strong>Username:</strong> {user?.username || "-"}
+          <strong>{t("profile.username")}</strong> {user?.username || "-"}
         </p>
         <p style={{ marginBottom: "20px" }}>
-          <strong>Email:</strong> {user?.email || "-"}
+          <strong>{t("profile.email")}</strong> {user?.email || "-"}
         </p>
 
         <button
           onClick={() => setShowPasswordForm((prev) => !prev)}
           style={buttonStyle}
         >
-          {showPasswordForm ? "Cancel" : "Change Password"}
+          {showPasswordForm ? t("profile.cancel") : t("profile.changePassword")}
         </button>
 
         {showPasswordForm && (
           <form onSubmit={handleSubmit} style={{ marginTop: "20px" }}>
             <div style={fieldStyle}>
-              <label style={labelStyle}>Current Password</label>
+              <label style={labelStyle}>{t("profile.currentPassword")}</label>
               <input
                 type="password"
                 name="currentPassword"
@@ -93,7 +95,7 @@ function ProfilePage() {
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>New Password</label>
+              <label style={labelStyle}>{t("profile.newPassword")}</label>
               <input
                 type="password"
                 name="newPassword"
@@ -105,7 +107,7 @@ function ProfilePage() {
             </div>
 
             <div style={fieldStyle}>
-              <label style={labelStyle}>Confirm New Password</label>
+              <label style={labelStyle}>{t("profile.confirmPassword")}</label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -117,7 +119,7 @@ function ProfilePage() {
             </div>
 
             <button type="submit" style={buttonStyle}>
-              Save Password
+              {t("profile.savePassword")}
             </button>
 
             {error && (

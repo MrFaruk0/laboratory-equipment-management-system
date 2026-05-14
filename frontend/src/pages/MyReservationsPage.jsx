@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getReservations } from "../services/reservationService";
+import { useLanguage } from "../context/LanguageContext";
 
 function MyReservationsPage() {
+  const { t } = useLanguage();
   const [showPastReservations, setShowPastReservations] = useState(false);
   const [reservations, setReservations] = useState({ active: [], past: [] });
   const [loading, setLoading] = useState(true);
@@ -14,7 +16,7 @@ function MyReservationsPage() {
         const data = await getReservations();
         setReservations(data);
       } catch (err) {
-        setError(err.message || "Rezervasyonları yükleyemedi.");
+        setError(err.message || t("myRes.failedLoad"));
       } finally {
         setLoading(false);
       }
@@ -34,9 +36,9 @@ function MyReservationsPage() {
   return (
     <MainLayout>
       <div style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>My Reservations</h1>
+        <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>{t("myRes.title")}</h1>
         <p style={{ color: "#6b7280" }}>
-          View your active and past equipment reservations.
+          {t("myRes.subtitle")}
         </p>
       </div>
 
@@ -55,7 +57,7 @@ function MyReservationsPage() {
             checked={showPastReservations}
             onChange={(event) => setShowPastReservations(event.target.checked)}
           />
-          Show Past Reservations
+          {t("myRes.showPast")}
         </label>
 
         {error && (
@@ -63,7 +65,7 @@ function MyReservationsPage() {
         )}
 
         {loading ? (
-          <p>Yükleniyor...</p>
+          <p>{t("myRes.loading")}</p>
         ) : (
           <table
             style={{
@@ -74,11 +76,11 @@ function MyReservationsPage() {
           >
             <thead>
               <tr>
-                <th style={tableHeaderStyle}>Equipment</th>
-                <th style={tableHeaderStyle}>Location</th>
-                <th style={tableHeaderStyle}>Start Time</th>
-                <th style={tableHeaderStyle}>End Time</th>
-                <th style={tableHeaderStyle}>Status</th>
+                <th style={tableHeaderStyle}>{t("myRes.equipment")}</th>
+                <th style={tableHeaderStyle}>{t("myRes.location")}</th>
+                <th style={tableHeaderStyle}>{t("myRes.startTime")}</th>
+                <th style={tableHeaderStyle}>{t("myRes.endTime")}</th>
+                <th style={tableHeaderStyle}>{t("myRes.status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -100,7 +102,7 @@ function MyReservationsPage() {
                             isPastReservation ? pastBadgeStyle : activeBadgeStyle
                           }
                         >
-                          {isPastReservation ? "Past" : "Active"}
+                          {isPastReservation ? t("myRes.past") : t("myRes.active")}
                         </span>
                       </td>
                     </tr>
@@ -116,7 +118,7 @@ function MyReservationsPage() {
                       color: "#6b7280",
                     }}
                   >
-                    No reservations found.
+                    {t("myRes.noFound")}
                   </td>
                 </tr>
               )}

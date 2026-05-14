@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getAdminUsers, changeUserRole } from "../services/adminService";
 import { AuthContext } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 const ROLES = [
   { id: 1, name: "student",    label: "Student" },
@@ -20,11 +21,7 @@ const roleStyle = {
 function RoleBadge({ roleName }) {
   const s = roleStyle[roleName] || { bg: "#f3f4f6", text: "#374151" };
   return (
-    <span style={{
-      background: s.bg, color: s.text,
-      padding: "3px 10px", borderRadius: "999px",
-      fontSize: "12px", fontWeight: "700",
-    }}>
+    <span style={{ background: s.bg, color: s.text, padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700" }}>
       {roleName}
     </span>
   );
@@ -36,23 +33,21 @@ function fmt(dt) {
 }
 
 function AdminUsersPage() {
+  const { t } = useLanguage();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [filterRole, setFilterRole] = useState("all");
-  const [saving, setSaving] = useState(null); // userId being saved
+  const [saving, setSaving] = useState(null);
   const { user: currentUser } = useContext(AuthContext);
 
   const reload = async () => {
     try {
       const data = await getAdminUsers();
       setUsers(data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { reload(); }, []);
@@ -68,11 +63,8 @@ function AdminUsersPage() {
             : u
         )
       );
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSaving(null);
-    }
+    } catch (e) { setError(e.message); }
+    finally { setSaving(null); }
   };
 
   const filtered = users.filter((u) => {
@@ -85,44 +77,38 @@ function AdminUsersPage() {
     return matchSearch && matchRole;
   });
 
+  const headers = [t("adminUsers.colName"), t("adminUsers.colUsername"), t("adminUsers.colEmail"), t("adminUsers.colCurrentRole"), t("adminUsers.colChangeRole"), t("adminUsers.colJoined")];
+
   return (
     <MainLayout>
       <div style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "32px", fontWeight: "800", marginBottom: "4px" }}>User Management</h1>
-        <p style={{ color: "#6b7280" }}>View all users and manage their roles.</p>
+        <h1 style={{ fontSize: "32px", fontWeight: "800", marginBottom: "4px" }}>{t("adminUsers.title")}</h1>
+        <p style={{ color: "#6b7280" }}>{t("adminUsers.subtitle")}</p>
       </div>
 
-      {/* Filters */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
-        <input
-          type="text"
-          placeholder="Search by name, username, email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="text" placeholder={t("adminUsers.searchPlaceholder")} value={search}
+          onChange={(e) => setSearch(e.target.value)} style={inputStyle} />
         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} style={{ ...inputStyle, minWidth: "150px", maxWidth: "180px" }}>
-          <option value="all">All Roles</option>
+          <option value="all">{t("adminUsers.allRoles")}</option>
           {ROLES.map((r) => <option key={r.id} value={r.name}>{r.label}</option>)}
         </select>
       </div>
 
       {error && <p style={{ color: "#dc2626", marginBottom: "16px" }}>{error}</p>}
-      {loading && <p style={{ color: "#9ca3af" }}>Loading...</p>}
+      {loading && <p style={{ color: "#9ca3af" }}>{t("adminUsers.loading")}</p>}
 
       {!loading && (
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr style={{ background: "#f9fafb" }}>
-                {["Name", "Username", "Email", "Current Role", "Change Role", "Joined"].map((h) => (
-                  <th key={h} style={thStyle}>{h}</th>
-                ))}
+                {headers.map((h) => <th key={h} style={thStyle}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>No users found.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>{t("adminUsers.noFound")}</td></tr>
               )}
               {filtered.map((u) => {
                 const isSelf = u.id === currentUser?.id;
@@ -130,31 +116,20 @@ function AdminUsersPage() {
                   <tr key={u.id} style={{ borderBottom: "1px solid #f3f4f6", background: isSelf ? "#fafafa" : "transparent" }}>
                     <td style={tdStyle}>
                       <div style={{ fontWeight: "600" }}>{u.fullName}</div>
-                      {isSelf && <div style={{ fontSize: "11px", color: "#9ca3af" }}>← you</div>}
+                      {isSelf && <div style={{ fontSize: "11px", color: "#9ca3af" }}>{t("adminUsers.you")}</div>}
                     </td>
                     <td style={{ ...tdStyle, color: "#6b7280" }}>@{u.username}</td>
                     <td style={{ ...tdStyle, fontSize: "13px", color: "#6b7280" }}>{u.email}</td>
                     <td style={tdStyle}><RoleBadge roleName={u.roleName} /></td>
                     <td style={tdStyle}>
-                      <select
-                        value={u.roleId}
+                      <select value={u.roleId}
                         onChange={(e) => handleRoleChange(u.id, Number(e.target.value))}
                         disabled={saving === u.id || (isSelf && u.roleId === 4)}
-                        style={{
-                          padding: "6px 10px",
-                          border: "1px solid #d1d5db",
-                          borderRadius: "8px",
-                          fontSize: "13px",
-                          cursor: "pointer",
-                          background: saving === u.id ? "#f3f4f6" : "#fff",
-                        }}
-                        title={isSelf && u.roleId === 4 ? "You cannot demote yourself" : ""}
-                      >
+                        style={{ padding: "6px 10px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "13px", cursor: "pointer", background: saving === u.id ? "#f3f4f6" : "#fff" }}
+                        title={isSelf && u.roleId === 4 ? t("adminUsers.cannotDemote") : ""}>
                         {ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
                       </select>
-                      {saving === u.id && (
-                        <span style={{ marginLeft: "8px", fontSize: "12px", color: "#6b7280" }}>Saving...</span>
-                      )}
+                      {saving === u.id && <span style={{ marginLeft: "8px", fontSize: "12px", color: "#6b7280" }}>{t("adminUsers.saving")}</span>}
                     </td>
                     <td style={{ ...tdStyle, fontSize: "13px", color: "#9ca3af" }}>{fmt(u.createdAt)}</td>
                   </tr>
@@ -166,7 +141,7 @@ function AdminUsersPage() {
       )}
 
       <p style={{ marginTop: "12px", fontSize: "13px", color: "#9ca3af" }}>
-        Showing {filtered.length} of {users.length} users
+        {t("adminUsers.showing", { filtered: filtered.length, total: users.length })}
       </p>
     </MainLayout>
   );

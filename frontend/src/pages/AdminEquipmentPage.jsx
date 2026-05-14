@@ -1,13 +1,7 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
-import {
-  getAdminEquipment,
-  getAdminLabs,
-  addEquipment,
-  updateEquipment,
-  updateEquipmentStatus,
-  deleteEquipment,
-} from "../services/adminService";
+import { getAdminEquipment, getAdminLabs, addEquipment, updateEquipment, updateEquipmentStatus, deleteEquipment } from "../services/adminService";
+import { useLanguage } from "../context/LanguageContext";
 
 const STATUS_OPTIONS = ["available", "in_use", "maintenance", "faulty"];
 
@@ -21,11 +15,7 @@ const statusStyle = {
 function StatusBadge({ status }) {
   const s = statusStyle[status] || { bg: "#f3f4f6", text: "#374151" };
   return (
-    <span style={{
-      background: s.bg, color: s.text,
-      padding: "3px 10px", borderRadius: "999px",
-      fontSize: "12px", fontWeight: "700",
-    }}>
+    <span style={{ background: s.bg, color: s.text, padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700" }}>
       {status.replace("_", " ")}
     </span>
   );
@@ -33,7 +23,7 @@ function StatusBadge({ status }) {
 
 const emptyForm = { name: "", code: "", labId: "", status: "available", description: "", quantity: 1, faultyCount: 0 };
 
-function EquipmentModal({ labs, initial, onClose, onSave }) {
+function EquipmentModal({ labs, initial, onClose, onSave, t }) {
   const [form, setForm] = useState(initial || emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -42,66 +32,51 @@ function EquipmentModal({ labs, initial, onClose, onSave }) {
 
   const handleSave = async () => {
     setError("");
-    if (!form.name || !form.code || !form.labId) {
-      setError("Name, code and lab are required.");
-      return;
-    }
+    if (!form.name || !form.code || !form.labId) { setError(t("adminEq.errRequired")); return; }
     setSaving(true);
-    try {
-      await onSave(form);
-      onClose();
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setSaving(false);
-    }
+    try { await onSave(form); onClose(); }
+    catch (e) { setError(e.message); }
+    finally { setSaving(false); }
   };
+
+  const fields = [
+    { label: t("adminEq.fieldName"), field: "name", type: "text" },
+    { label: t("adminEq.fieldCode"), field: "code", type: "text" },
+    { label: t("adminEq.fieldDesc"), field: "description", type: "text" },
+    { label: t("adminEq.fieldQty"), field: "quantity", type: "number" },
+    { label: t("adminEq.fieldFaulty"), field: "faultyCount", type: "number" },
+  ];
 
   return (
     <div style={overlayStyle}>
       <div style={modalStyle}>
         <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "20px" }}>
-          {initial ? "Edit Equipment" : "Add Equipment"}
+          {initial ? t("adminEq.editTitle") : t("adminEq.addTitle")}
         </h2>
-
-        {[
-          { label: "Name", field: "name", type: "text" },
-          { label: "Code", field: "code", type: "text" },
-          { label: "Description", field: "description", type: "text" },
-          { label: "Quantity", field: "quantity", type: "number" },
-          { label: "Faulty Count", field: "faultyCount", type: "number" },
-        ].map(({ label, field, type }) => (
+        {fields.map(({ label, field, type }) => (
           <div key={field} style={{ marginBottom: "14px" }}>
             <label style={labelStyle}>{label}</label>
             <input type={type} value={form[field]} onChange={set(field)} style={inputStyle} />
           </div>
         ))}
-
         <div style={{ marginBottom: "14px" }}>
-          <label style={labelStyle}>Laboratory</label>
+          <label style={labelStyle}>{t("adminEq.fieldLab")}</label>
           <select value={form.labId} onChange={set("labId")} style={inputStyle}>
-            <option value="">Select lab</option>
-            {labs.map((l) => (
-              <option key={l.id} value={l.id}>{l.name}</option>
-            ))}
+            <option value="">{t("adminEq.selectLab")}</option>
+            {labs.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
         </div>
-
         <div style={{ marginBottom: "20px" }}>
-          <label style={labelStyle}>Status</label>
+          <label style={labelStyle}>{t("adminEq.fieldStatus")}</label>
           <select value={form.status} onChange={set("status")} style={inputStyle}>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>{s.replace("_", " ")}</option>
-            ))}
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
           </select>
         </div>
-
         {error && <p style={{ color: "#dc2626", fontSize: "13px", marginBottom: "12px" }}>{error}</p>}
-
         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={cancelBtn}>Cancel</button>
+          <button onClick={onClose} style={cancelBtn}>{t("adminEq.cancel")}</button>
           <button onClick={handleSave} disabled={saving} style={saveBtn}>
-            {saving ? "Saving..." : "Save"}
+            {saving ? t("adminEq.saving") : t("adminEq.save")}
           </button>
         </div>
       </div>
@@ -109,14 +84,14 @@ function EquipmentModal({ labs, initial, onClose, onSave }) {
   );
 }
 
-function ConfirmDialog({ message, onConfirm, onCancel }) {
+function ConfirmDialog({ message, onConfirm, onCancel, t }) {
   return (
     <div style={overlayStyle}>
       <div style={{ ...modalStyle, maxWidth: "400px" }}>
         <p style={{ fontSize: "16px", marginBottom: "24px", color: "#374151" }}>{message}</p>
         <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-          <button onClick={onCancel} style={cancelBtn}>Cancel</button>
-          <button onClick={onConfirm} style={{ ...saveBtn, background: "#ef4444" }}>Delete</button>
+          <button onClick={onCancel} style={cancelBtn}>{t("adminEq.cancel")}</button>
+          <button onClick={onConfirm} style={{ ...saveBtn, background: "#ef4444" }}>{t("adminEq.delete")}</button>
         </div>
       </div>
     </div>
@@ -124,56 +99,40 @@ function ConfirmDialog({ message, onConfirm, onCancel }) {
 }
 
 function AdminEquipmentPage() {
+  const { t } = useLanguage();
   const [equipment, setEquipment] = useState([]);
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [modal, setModal] = useState(null); // null | { mode: "add" | "edit", initial?: {} }
-  const [confirm, setConfirm] = useState(null); // null | { id }
+  const [modal, setModal] = useState(null);
+  const [confirm, setConfirm] = useState(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
   const reload = async () => {
     try {
       const [eq, lb] = await Promise.all([getAdminEquipment(), getAdminLabs()]);
-      setEquipment(eq);
-      setLabs(lb);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+      setEquipment(eq); setLabs(lb);
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { reload(); }, []);
 
   const handleSave = async (form) => {
-    if (modal.mode === "add") {
-      await addEquipment(form);
-    } else {
-      await updateEquipment(modal.initial.id, form);
-    }
+    if (modal.mode === "add") await addEquipment(form);
+    else await updateEquipment(modal.initial.id, form);
     reload();
   };
 
   const handleStatusChange = async (id, status) => {
-    try {
-      await updateEquipmentStatus(id, status);
-      reload();
-    } catch (e) {
-      setError(e.message);
-    }
+    try { await updateEquipmentStatus(id, status); reload(); }
+    catch (e) { setError(e.message); }
   };
 
   const handleDelete = async () => {
-    try {
-      await deleteEquipment(confirm.id);
-      setConfirm(null);
-      reload();
-    } catch (e) {
-      setError(e.message);
-      setConfirm(null);
-    }
+    try { await deleteEquipment(confirm.id); setConfirm(null); reload(); }
+    catch (e) { setError(e.message); setConfirm(null); }
   };
 
   const filtered = equipment.filter((eq) => {
@@ -185,47 +144,41 @@ function AdminEquipmentPage() {
     return matchSearch && matchStatus;
   });
 
+  const headers = [t("adminEq.colName"), t("adminEq.colCode"), t("adminEq.colLab"), t("adminEq.colQtyFaulty"), t("adminEq.colStatus"), t("adminEq.colActions")];
+
   return (
     <MainLayout>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "32px", fontWeight: "800", marginBottom: "4px" }}>Equipment Management</h1>
-          <p style={{ color: "#6b7280" }}>Add, edit, and manage laboratory equipment.</p>
+          <h1 style={{ fontSize: "32px", fontWeight: "800", marginBottom: "4px" }}>{t("adminEq.title")}</h1>
+          <p style={{ color: "#6b7280" }}>{t("adminEq.subtitle")}</p>
         </div>
-        <button onClick={() => setModal({ mode: "add" })} style={saveBtn}>+ Add Equipment</button>
+        <button onClick={() => setModal({ mode: "add" })} style={saveBtn}>{t("adminEq.addBtn")}</button>
       </div>
 
-      {/* Filters */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
-        <input
-          type="text"
-          placeholder="Search by name, code, lab..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ ...inputStyle, maxWidth: "300px" }}
-        />
+        <input type="text" placeholder={t("adminEq.searchPlaceholder")} value={search}
+          onChange={(e) => setSearch(e.target.value)} style={{ ...inputStyle, maxWidth: "300px" }} />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ ...inputStyle, maxWidth: "180px" }}>
-          <option value="all">All Statuses</option>
+          <option value="all">{t("adminEq.allStatuses")}</option>
           {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
         </select>
       </div>
 
       {error && <p style={{ color: "#dc2626", marginBottom: "16px" }}>{error}</p>}
-      {loading && <p style={{ color: "#9ca3af" }}>Loading...</p>}
+      {loading && <p style={{ color: "#9ca3af" }}>{t("adminEq.loading")}</p>}
 
       {!loading && (
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr style={{ background: "#f9fafb" }}>
-                {["Name", "Code", "Lab", "Qty / Faulty", "Status", "Actions"].map((h) => (
-                  <th key={h} style={thStyle}>{h}</th>
-                ))}
+                {headers.map((h) => <th key={h} style={thStyle}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>No equipment found.</td></tr>
+                <tr><td colSpan={6} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>{t("adminEq.noFound")}</td></tr>
               )}
               {filtered.map((eq) => (
                 <tr key={eq.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
@@ -236,40 +189,23 @@ function AdminEquipmentPage() {
                   <td style={tdStyle}><code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: "4px" }}>{eq.code}</code></td>
                   <td style={tdStyle}>
                     <div>{eq.labName}</div>
-                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>{eq.building} – Room {eq.roomNo}</div>
+                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>{eq.building} – {t("adminEq.room")} {eq.roomNo}</div>
                   </td>
                   <td style={tdStyle}>
                     <div style={{ fontSize: "14px", fontWeight: "600" }}>{eq.quantity} / {eq.faultyCount}</div>
-                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>Available: {Math.max(0, eq.quantity - eq.faultyCount)}</div>
+                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>{t("adminEq.available")} {Math.max(0, eq.quantity - eq.faultyCount)}</div>
                   </td>
                   <td style={tdStyle}>
-                    <select
-                      value={eq.status}
-                      onChange={(e) => handleStatusChange(eq.id, e.target.value)}
-                      style={{
-                        border: "none",
-                        background: statusStyle[eq.status]?.bg || "#f3f4f6",
+                    <select value={eq.status} onChange={(e) => handleStatusChange(eq.id, e.target.value)}
+                      style={{ border: "none", background: statusStyle[eq.status]?.bg || "#f3f4f6",
                         color: statusStyle[eq.status]?.text || "#374151",
-                        padding: "4px 8px",
-                        borderRadius: "8px",
-                        fontWeight: "700",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                      }}
-                    >
+                        padding: "4px 8px", borderRadius: "8px", fontWeight: "700", fontSize: "12px", cursor: "pointer" }}>
                       {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
                     </select>
                   </td>
                   <td style={{ ...tdStyle, display: "flex", gap: "8px" }}>
-                    <button
-                      onClick={() => setModal({ mode: "edit", initial: { ...eq, labId: eq.labId } })}
-                      style={editBtn}
-                    >
-                      Edit
-                    </button>
-                    <button onClick={() => setConfirm({ id: eq.id, name: eq.name })} style={deleteBtn}>
-                      Delete
-                    </button>
+                    <button onClick={() => setModal({ mode: "edit", initial: { ...eq, labId: eq.labId } })} style={editBtn}>{t("adminEq.edit")}</button>
+                    <button onClick={() => setConfirm({ id: eq.id, name: eq.name })} style={deleteBtn}>{t("adminEq.delete")}</button>
                   </td>
                 </tr>
               ))}
@@ -279,26 +215,19 @@ function AdminEquipmentPage() {
       )}
 
       {modal && (
-        <EquipmentModal
-          labs={labs}
-          initial={modal.initial}
-          onClose={() => setModal(null)}
-          onSave={handleSave}
-        />
+        <EquipmentModal labs={labs} initial={modal.initial} onClose={() => setModal(null)} onSave={handleSave} t={t} />
       )}
 
       {confirm && (
         <ConfirmDialog
-          message={`Delete "${confirm.name}"? Active reservations for this equipment will be cancelled.`}
-          onConfirm={handleDelete}
-          onCancel={() => setConfirm(null)}
+          message={t("adminEq.confirmDelete", { name: confirm.name })}
+          onConfirm={handleDelete} onCancel={() => setConfirm(null)} t={t}
         />
       )}
     </MainLayout>
   );
 }
 
-// ── Shared Styles ──────────────────────────────
 const labelStyle = { display: "block", fontWeight: "600", fontSize: "13px", marginBottom: "6px", color: "#374151" };
 const inputStyle = { width: "100%", padding: "10px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", boxSizing: "border-box" };
 const saveBtn = { padding: "10px 20px", background: "#1d4ed8", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "700", cursor: "pointer", fontSize: "14px" };
