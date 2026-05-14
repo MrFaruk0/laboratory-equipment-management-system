@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import MainLayout from "../layouts/MainLayout";
 import { getAdminReservations, cancelAdminReservation } from "../services/adminService";
+import { useLanguage } from "../context/LanguageContext";
 
 const statusStyle = {
   active:    { bg: "#dbeafe", text: "#1d4ed8" },
@@ -11,11 +12,7 @@ const statusStyle = {
 function StatusBadge({ status }) {
   const s = statusStyle[status] || { bg: "#f3f4f6", text: "#374151" };
   return (
-    <span style={{
-      background: s.bg, color: s.text,
-      padding: "3px 10px", borderRadius: "999px",
-      fontSize: "12px", fontWeight: "700",
-    }}>
+    <span style={{ background: s.bg, color: s.text, padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700" }}>
       {status}
     </span>
   );
@@ -23,13 +20,11 @@ function StatusBadge({ status }) {
 
 function fmt(dt) {
   if (!dt) return "—";
-  return new Date(dt).toLocaleString("tr-TR", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
+  return new Date(dt).toLocaleString("tr-TR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 function AdminReservationsPage() {
+  const { t } = useLanguage();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -40,23 +35,16 @@ function AdminReservationsPage() {
     try {
       const data = await getAdminReservations();
       setReservations(data);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => { reload(); }, []);
 
   const handleCancel = async (id) => {
-    if (!window.confirm("Cancel this reservation?")) return;
-    try {
-      await cancelAdminReservation(id);
-      reload();
-    } catch (e) {
-      setError(e.message);
-    }
+    if (!window.confirm(t("adminRes.confirmCancel"))) return;
+    try { await cancelAdminReservation(id); reload(); }
+    catch (e) { setError(e.message); }
   };
 
   const filtered = reservations.filter((r) => {
@@ -70,46 +58,40 @@ function AdminReservationsPage() {
     return matchStatus && matchSearch;
   });
 
+  const headers = [t("adminRes.colUser"), t("adminRes.colEquipment"), t("adminRes.colLocation"), t("adminRes.colStart"), t("adminRes.colEnd"), t("adminRes.colStatus"), t("adminRes.colActions")];
+
   return (
     <MainLayout>
       <div style={{ marginBottom: "24px" }}>
-        <h1 style={{ fontSize: "32px", fontWeight: "800", marginBottom: "4px" }}>All Reservations</h1>
-        <p style={{ color: "#6b7280" }}>View and cancel any reservation across all users.</p>
+        <h1 style={{ fontSize: "32px", fontWeight: "800", marginBottom: "4px" }}>{t("adminRes.title")}</h1>
+        <p style={{ color: "#6b7280" }}>{t("adminRes.subtitle")}</p>
       </div>
 
-      {/* Filters */}
       <div style={{ display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" }}>
-        <input
-          type="text"
-          placeholder="Search by user, equipment..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={inputStyle}
-        />
+        <input type="text" placeholder={t("adminRes.searchPlaceholder")} value={search}
+          onChange={(e) => setSearch(e.target.value)} style={inputStyle} />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ ...inputStyle, maxWidth: "180px" }}>
-          <option value="all">All Statuses</option>
-          <option value="active">Active</option>
-          <option value="cancelled">Cancelled</option>
-          <option value="completed">Completed</option>
+          <option value="all">{t("adminRes.allStatuses")}</option>
+          <option value="active">{t("adminRes.active")}</option>
+          <option value="cancelled">{t("adminRes.cancelled")}</option>
+          <option value="completed">{t("adminRes.completed")}</option>
         </select>
       </div>
 
       {error && <p style={{ color: "#dc2626", marginBottom: "16px" }}>{error}</p>}
-      {loading && <p style={{ color: "#9ca3af" }}>Loading...</p>}
+      {loading && <p style={{ color: "#9ca3af" }}>{t("adminRes.loading")}</p>}
 
       {!loading && (
         <div style={{ overflowX: "auto" }}>
           <table style={tableStyle}>
             <thead>
               <tr style={{ background: "#f9fafb" }}>
-                {["User", "Equipment", "Location", "Start", "End", "Status", "Actions"].map((h) => (
-                  <th key={h} style={thStyle}>{h}</th>
-                ))}
+                {headers.map((h) => <th key={h} style={thStyle}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>No reservations found.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: "center", padding: "32px", color: "#9ca3af" }}>{t("adminRes.noFound")}</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
@@ -127,9 +109,7 @@ function AdminReservationsPage() {
                   <td style={tdStyle}><StatusBadge status={r.status} /></td>
                   <td style={tdStyle}>
                     {r.status === "active" ? (
-                      <button onClick={() => handleCancel(r.id)} style={cancelBtn}>
-                        Cancel
-                      </button>
+                      <button onClick={() => handleCancel(r.id)} style={cancelBtn}>{t("adminRes.cancelBtn")}</button>
                     ) : (
                       <span style={{ color: "#d1d5db", fontSize: "13px" }}>—</span>
                     )}
@@ -142,7 +122,7 @@ function AdminReservationsPage() {
       )}
 
       <p style={{ marginTop: "12px", fontSize: "13px", color: "#9ca3af" }}>
-        Showing {filtered.length} of {reservations.length} reservations
+        {t("adminRes.showing", { filtered: filtered.length, total: reservations.length })}
       </p>
     </MainLayout>
   );

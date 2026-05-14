@@ -2,10 +2,12 @@ import { useState, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
 import { AuthContext } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
 
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useContext(AuthContext);
+  const { t, toggleLanguage } = useLanguage();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -42,14 +44,32 @@ function LoginPage() {
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
-        <h1 style={{ marginBottom: "8px", fontSize: "32px" }}>Login</h1>
+        {/* Language toggle for login page */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+          <button
+            onClick={toggleLanguage}
+            style={langBtnStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#1d4ed8";
+              e.currentTarget.style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#1d4ed8";
+            }}
+          >
+            {t("lang.toggle")}
+          </button>
+        </div>
+
+        <h1 style={{ marginBottom: "8px", fontSize: "32px" }}>{t("login.title")}</h1>
         <p style={{ marginBottom: "24px", color: "#6b7280" }}>
-          Smart Laboratory Equipment Reservation System
+          {t("login.subtitle")}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div style={fieldStyle}>
-            <label style={labelStyle}>Email</label>
+            <label style={labelStyle}>{t("login.email")}</label>
             <input
               type="email"
               name="email"
@@ -61,7 +81,7 @@ function LoginPage() {
           </div>
 
           <div style={fieldStyle}>
-            <label style={labelStyle}>Password</label>
+            <label style={labelStyle}>{t("login.password")}</label>
             <input
               type="password"
               name="password"
@@ -73,7 +93,7 @@ function LoginPage() {
           </div>
 
           <button type="submit" style={buttonStyle} disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? t("login.loading") : t("login.submit")}
           </button>
 
           {error && (
@@ -84,7 +104,7 @@ function LoginPage() {
         </form>
 
         <p style={{ marginTop: "18px", color: "#4b5563" }}>
-          Do not have an account? <Link to="/signup">Sign Up</Link>
+          {t("login.noAccount")} <Link to="/signup">{t("login.signUp")}</Link>
         </p>
       </div>
     </div>
@@ -107,6 +127,19 @@ const cardStyle = {
   borderRadius: "14px",
   border: "1px solid #e5e7eb",
   boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+};
+
+const langBtnStyle = {
+  padding: "4px 10px",
+  fontSize: "12px",
+  fontWeight: "700",
+  border: "1.5px solid #1d4ed8",
+  borderRadius: "8px",
+  background: "transparent",
+  color: "#1d4ed8",
+  cursor: "pointer",
+  letterSpacing: "0.5px",
+  transition: "all 0.2s",
 };
 
 const fieldStyle = {

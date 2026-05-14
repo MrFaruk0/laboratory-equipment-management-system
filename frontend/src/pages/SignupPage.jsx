@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signupUser } from "../services/authService";
+import { useLanguage } from "../context/LanguageContext";
 
 function SignupPage() {
   const navigate = useNavigate();
+  const { t, toggleLanguage } = useLanguage();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -43,14 +45,32 @@ function SignupPage() {
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
-        <h1 style={{ marginBottom: "8px", fontSize: "32px" }}>Sign Up</h1>
+        {/* Language toggle for signup page */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+          <button
+            onClick={toggleLanguage}
+            style={langBtnStyle}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#1d4ed8";
+              e.currentTarget.style.color = "#fff";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#1d4ed8";
+            }}
+          >
+            {t("lang.toggle")}
+          </button>
+        </div>
+
+        <h1 style={{ marginBottom: "8px", fontSize: "32px" }}>{t("signup.title")}</h1>
         <p style={{ marginBottom: "24px", color: "#6b7280" }}>
-          Create a new account
+          {t("signup.subtitle")}
         </p>
 
         <form onSubmit={handleSubmit}>
           <div style={fieldStyle}>
-            <label style={labelStyle}>Username</label>
+            <label style={labelStyle}>{t("signup.username")}</label>
             <input
               type="text"
               name="username"
@@ -63,7 +83,7 @@ function SignupPage() {
           </div>
 
           <div style={fieldStyle}>
-            <label style={labelStyle}>Full Name</label>
+            <label style={labelStyle}>{t("signup.fullName")}</label>
             <input
               type="text"
               name="fullName"
@@ -75,7 +95,7 @@ function SignupPage() {
           </div>
 
           <div style={fieldStyle}>
-            <label style={labelStyle}>Email</label>
+            <label style={labelStyle}>{t("signup.email")}</label>
             <input
               type="email"
               name="email"
@@ -87,7 +107,7 @@ function SignupPage() {
           </div>
 
           <div style={fieldStyle}>
-            <label style={labelStyle}>Password</label>
+            <label style={labelStyle}>{t("signup.password")}</label>
             <input
               type="password"
               name="password"
@@ -99,7 +119,7 @@ function SignupPage() {
           </div>
 
           <button type="submit" style={buttonStyle} disabled={loading}>
-            {loading ? "Hesap oluşturuluyor..." : "Create Account"}
+            {loading ? t("signup.loading") : t("signup.submit")}
           </button>
 
           {error && (
@@ -110,7 +130,7 @@ function SignupPage() {
         </form>
 
         <p style={{ marginTop: "18px", color: "#4b5563" }}>
-          Already have an account? <Link to="/login">Login</Link>
+          {t("signup.haveAccount")} <Link to="/login">{t("signup.login")}</Link>
         </p>
       </div>
     </div>
@@ -133,6 +153,19 @@ const cardStyle = {
   borderRadius: "14px",
   border: "1px solid #e5e7eb",
   boxShadow: "0 8px 20px rgba(15, 23, 42, 0.04)",
+};
+
+const langBtnStyle = {
+  padding: "4px 10px",
+  fontSize: "12px",
+  fontWeight: "700",
+  border: "1.5px solid #1d4ed8",
+  borderRadius: "8px",
+  background: "transparent",
+  color: "#1d4ed8",
+  cursor: "pointer",
+  letterSpacing: "0.5px",
+  transition: "all 0.2s",
 };
 
 const fieldStyle = {
