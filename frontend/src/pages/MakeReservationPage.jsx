@@ -16,7 +16,7 @@ const WORKING_HOURS = [
 ];
 
 function MakeReservationPage() {
-  const { t, language } = useLanguage();
+  const { t, translateEntity, language } = useLanguage();
   const [selectedEquipmentId, setSelectedEquipmentId] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -168,7 +168,7 @@ function MakeReservationPage() {
             <option value="">{t("makeRes.selectEquipment")}</option>
             {equipments.map((eq) => (
               <option key={eq.id} value={eq.id}>
-                {eq.name} - {eq.availableTotal || 0} {t("makeRes.available")}
+                {translateEntity(eq.name)} - {eq.availableTotal || 0} {t("makeRes.available")}
               </option>
             ))}
           </select>
@@ -176,7 +176,7 @@ function MakeReservationPage() {
 
         <div style={{ marginBottom: "20px" }}>
           <label style={labelStyle}>{t("makeRes.location")}</label>
-          <input type="text" value={selectedEquipment ? selectedEquipment.location : ""} readOnly style={inputStyle} />
+          <input type="text" value={selectedEquipment ? translateEntity(selectedEquipment.location) : ""} readOnly style={inputStyle} />
         </div>
 
         {selectedEquipment && (

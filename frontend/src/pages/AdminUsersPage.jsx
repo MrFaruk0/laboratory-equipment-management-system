@@ -4,13 +4,6 @@ import { getAdminUsers, changeUserRole } from "../services/adminService";
 import { AuthContext } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 
-const ROLES = [
-  { id: 1, name: "student",    label: "Student" },
-  { id: 2, name: "assistant",  label: "Assistant" },
-  { id: 3, name: "technician", label: "Technician" },
-  { id: 4, name: "admin",      label: "Admin" },
-];
-
 const roleStyle = {
   student:    { bg: "#dbeafe", text: "#1d4ed8" },
   assistant:  { bg: "#ede9fe", text: "#6d28d9" },
@@ -18,11 +11,11 @@ const roleStyle = {
   admin:      { bg: "#fee2e2", text: "#b91c1c" },
 };
 
-function RoleBadge({ roleName }) {
+function RoleBadge({ roleName, t }) {
   const s = roleStyle[roleName] || { bg: "#f3f4f6", text: "#374151" };
   return (
     <span style={{ background: s.bg, color: s.text, padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700" }}>
-      {roleName}
+      {t("role." + roleName)}
     </span>
   );
 }
@@ -41,6 +34,13 @@ function AdminUsersPage() {
   const [filterRole, setFilterRole] = useState("all");
   const [saving, setSaving] = useState(null);
   const { user: currentUser } = useContext(AuthContext);
+
+  const ROLES = [
+    { id: 1, name: "student" },
+    { id: 2, name: "assistant" },
+    { id: 3, name: "technician" },
+    { id: 4, name: "admin" },
+  ];
 
   const reload = async () => {
     try {
@@ -91,7 +91,7 @@ function AdminUsersPage() {
           onChange={(e) => setSearch(e.target.value)} style={inputStyle} />
         <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)} style={{ ...inputStyle, minWidth: "150px", maxWidth: "180px" }}>
           <option value="all">{t("adminUsers.allRoles")}</option>
-          {ROLES.map((r) => <option key={r.id} value={r.name}>{r.label}</option>)}
+          {ROLES.map((r) => <option key={r.id} value={r.name}>{t("role." + r.name)}</option>)}
         </select>
       </div>
 
@@ -120,14 +120,14 @@ function AdminUsersPage() {
                     </td>
                     <td style={{ ...tdStyle, color: "#6b7280" }}>@{u.username}</td>
                     <td style={{ ...tdStyle, fontSize: "13px", color: "#6b7280" }}>{u.email}</td>
-                    <td style={tdStyle}><RoleBadge roleName={u.roleName} /></td>
+                    <td style={tdStyle}><RoleBadge roleName={u.roleName} t={t} /></td>
                     <td style={tdStyle}>
                       <select value={u.roleId}
                         onChange={(e) => handleRoleChange(u.id, Number(e.target.value))}
                         disabled={saving === u.id || (isSelf && u.roleId === 4)}
                         style={{ padding: "6px 10px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "13px", cursor: "pointer", background: saving === u.id ? "#f3f4f6" : "#fff" }}
                         title={isSelf && u.roleId === 4 ? t("adminUsers.cannotDemote") : ""}>
-                        {ROLES.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+                        {ROLES.map((r) => <option key={r.id} value={r.id}>{t("role." + r.name)}</option>)}
                       </select>
                       {saving === u.id && <span style={{ marginLeft: "8px", fontSize: "12px", color: "#6b7280" }}>{t("adminUsers.saving")}</span>}
                     </td>

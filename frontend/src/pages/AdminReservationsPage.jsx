@@ -9,11 +9,11 @@ const statusStyle = {
   completed: { bg: "#dcfce7", text: "#15803d" },
 };
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, t }) {
   const s = statusStyle[status] || { bg: "#f3f4f6", text: "#374151" };
   return (
     <span style={{ background: s.bg, color: s.text, padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700" }}>
-      {status}
+      {t("status." + status)}
     </span>
   );
 }
@@ -23,8 +23,19 @@ function fmt(dt) {
   return new Date(dt).toLocaleString("tr-TR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
+function getDisplayStatus(reservation) {
+  if (reservation.status === "active" && reservation.endTime) {
+    const now = new Date();
+    const endTime = new Date(reservation.endTime);
+    if (now > endTime) {
+      return "completed";
+    }
+  }
+  return reservation.status;
+}
+
 function AdminReservationsPage() {
-  const { t } = useLanguage();
+  const { t, translateEntity } = useLanguage();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -48,7 +59,8 @@ function AdminReservationsPage() {
   };
 
   const filtered = reservations.filter((r) => {
-    const matchStatus = filterStatus === "all" || r.status === filterStatus;
+    const displayStatus = getDisplayStatus(r);
+    const matchStatus = filterStatus === "all" || displayStatus === filterStatus;
     const q = search.toLowerCase();
     const matchSearch =
       r.userFullName?.toLowerCase().includes(q) ||
@@ -72,9 +84,9 @@ function AdminReservationsPage() {
           onChange={(e) => setSearch(e.target.value)} style={inputStyle} />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ ...inputStyle, maxWidth: "180px" }}>
           <option value="all">{t("adminRes.allStatuses")}</option>
-          <option value="active">{t("adminRes.active")}</option>
-          <option value="cancelled">{t("adminRes.cancelled")}</option>
-          <option value="completed">{t("adminRes.completed")}</option>
+          <option value="active">{t("status.active")}</option>
+          <option value="cancelled">{t("status.cancelled")}</option>
+          <option value="completed">{t("status.completed")}</option>
         </select>
       </div>
 
@@ -100,15 +112,15 @@ function AdminReservationsPage() {
                     <div style={{ fontSize: "12px", color: "#9ca3af" }}>@{r.username}</div>
                   </td>
                   <td style={tdStyle}>
-                    <div style={{ fontWeight: "600" }}>{r.equipment}</div>
+                    <div style={{ fontWeight: "600" }}>{translateEntity(r.equipment)}</div>
                     <code style={{ fontSize: "11px", background: "#f3f4f6", padding: "1px 5px", borderRadius: "4px" }}>{r.code}</code>
                   </td>
-                  <td style={{ ...tdStyle, fontSize: "13px", color: "#6b7280" }}>{r.location}</td>
+                  <td style={{ ...tdStyle, fontSize: "13px", color: "#6b7280" }}>{translateEntity(r.location)}</td>
                   <td style={{ ...tdStyle, fontSize: "13px" }}>{fmt(r.startTime)}</td>
                   <td style={{ ...tdStyle, fontSize: "13px" }}>{fmt(r.endTime)}</td>
-                  <td style={tdStyle}><StatusBadge status={r.status} /></td>
+                  <td style={tdStyle}><StatusBadge status={getDisplayStatus(r)} t={t} /></td>
                   <td style={tdStyle}>
-                    {r.status === "active" ? (
+                    {getDisplayStatus(r) === "active" ? (
                       <button onClick={() => handleCancel(r.id)} style={cancelBtn}>{t("adminRes.cancelBtn")}</button>
                     ) : (
                       <span style={{ color: "#d1d5db", fontSize: "13px" }}>—</span>

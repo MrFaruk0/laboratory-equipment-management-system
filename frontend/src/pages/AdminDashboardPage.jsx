@@ -34,7 +34,7 @@ function StatCard({ label, value, color, sub, onClick, clickable }) {
 }
 
 function AdminDashboardPage() {
-  const { t } = useLanguage();
+  const { t, translateEntity } = useLanguage();
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -45,10 +45,10 @@ function AdminDashboardPage() {
   const [modalConfig, setModalConfig] = useState(null);
 
   const roleLabels = {
-    students: t("adminUsers.colName") === "Name" ? "Students" : "Öğrenciler",
-    assistants: t("adminUsers.colName") === "Name" ? "Assistants" : "Asistanlar",
-    technicians: t("adminUsers.colName") === "Name" ? "Technicians" : "Teknisyenler",
-    admins: t("adminUsers.colName") === "Name" ? "Admins" : "Yöneticiler",
+    students: t("role.student"),
+    assistants: t("role.assistant"),
+    technicians: t("role.technician"),
+    admins: t("role.admin"),
   };
 
   useEffect(() => {
@@ -83,13 +83,13 @@ function AdminDashboardPage() {
         columns = [t("adminDash.modalCols.name"), t("adminDash.modalCols.status"), t("adminDash.modalCols.lab"), t("adminDash.modalCols.code")];
         renderRow = (item) => (
           <>
-            <td style={{ padding: "12px 8px" }}>{item.name}</td>
+            <td style={{ padding: "12px 8px" }}>{translateEntity(item.name)}</td>
             <td style={{ padding: "12px 8px" }}>
               <span style={{ background: statusColors[item.status]?.bg, color: statusColors[item.status]?.text, padding: "4px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "500" }}>
-                {item.status.replace("_", " ")}
+                {t("status." + item.status)}
               </span>
             </td>
-            <td style={{ padding: "12px 8px" }}>{item.labName || "—"}</td>
+            <td style={{ padding: "12px 8px" }}>{translateEntity(item.labName) || "—"}</td>
             <td style={{ padding: "12px 8px" }}>{item.code || "—"}</td>
           </>
         );
@@ -115,7 +115,7 @@ function AdminDashboardPage() {
                 color: item.computedStatus === "active" ? "#1d4ed8" : item.computedStatus === "completed" ? "#15803d" : "#b91c1c",
                 padding: "4px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "500",
               }}>
-                {item.computedStatus}
+                {t("status." + item.computedStatus)}
               </span>
             </td>
             <td style={{ padding: "12px 8px" }}>{new Date(item.startTime).toLocaleDateString()}</td>
@@ -174,8 +174,8 @@ function AdminDashboardPage() {
               <StatCard label={t("adminDash.total")} value={stats.equipment.total} color="#111827" clickable
                 onClick={() => openModal(t("adminDash.allEquipment"), "equipment", "total")} />
               {Object.entries(statusColors).map(([key, c]) => (
-                <StatCard key={key} label={key.replace("_", " ")} value={stats.equipment[key] ?? 0} color={c.text} clickable
-                  onClick={() => openModal(`${key.replace("_", " ")} Equipment`, "equipment", key)} />
+                <StatCard key={key} label={t("status." + key)} value={stats.equipment[key] ?? 0} color={c.text} clickable
+                  onClick={() => openModal(`${t("status." + key)} Equipment`, "equipment", key)} />
               ))}
             </div>
             <div style={{ display: "flex", height: "10px", borderRadius: "999px", overflow: "hidden", marginTop: "16px" }}>

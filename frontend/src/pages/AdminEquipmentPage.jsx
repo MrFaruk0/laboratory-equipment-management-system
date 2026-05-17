@@ -12,11 +12,11 @@ const statusStyle = {
   faulty:      { bg: "#fee2e2", text: "#b91c1c" },
 };
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, t }) {
   const s = statusStyle[status] || { bg: "#f3f4f6", text: "#374151" };
   return (
     <span style={{ background: s.bg, color: s.text, padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: "700" }}>
-      {status.replace("_", " ")}
+      {t("status." + status)}
     </span>
   );
 }
@@ -69,7 +69,7 @@ function EquipmentModal({ labs, initial, onClose, onSave, t }) {
         <div style={{ marginBottom: "20px" }}>
           <label style={labelStyle}>{t("adminEq.fieldStatus")}</label>
           <select value={form.status} onChange={set("status")} style={inputStyle}>
-            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+            {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{t("status." + s)}</option>)}
           </select>
         </div>
         {error && <p style={{ color: "#dc2626", fontSize: "13px", marginBottom: "12px" }}>{error}</p>}
@@ -99,7 +99,7 @@ function ConfirmDialog({ message, onConfirm, onCancel, t }) {
 }
 
 function AdminEquipmentPage() {
-  const { t } = useLanguage();
+  const { t, translateEntity } = useLanguage();
   const [equipment, setEquipment] = useState([]);
   const [labs, setLabs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -161,7 +161,7 @@ function AdminEquipmentPage() {
           onChange={(e) => setSearch(e.target.value)} style={{ ...inputStyle, maxWidth: "300px" }} />
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={{ ...inputStyle, maxWidth: "180px" }}>
           <option value="all">{t("adminEq.allStatuses")}</option>
-          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{t("status." + s)}</option>)}
         </select>
       </div>
 
@@ -183,13 +183,13 @@ function AdminEquipmentPage() {
               {filtered.map((eq) => (
                 <tr key={eq.id} style={{ borderBottom: "1px solid #f3f4f6" }}>
                   <td style={tdStyle}>
-                    <div style={{ fontWeight: "600" }}>{eq.name}</div>
+                    <div style={{ fontWeight: "600" }}>{translateEntity(eq.name)}</div>
                     {eq.description && <div style={{ fontSize: "12px", color: "#9ca3af" }}>{eq.description}</div>}
                   </td>
                   <td style={tdStyle}><code style={{ background: "#f3f4f6", padding: "2px 6px", borderRadius: "4px" }}>{eq.code}</code></td>
                   <td style={tdStyle}>
-                    <div>{eq.labName}</div>
-                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>{eq.building} – {t("adminEq.room")} {eq.roomNo}</div>
+                    <div>{translateEntity(eq.labName)}</div>
+                    <div style={{ fontSize: "12px", color: "#9ca3af" }}>{translateEntity(eq.building)} – {t("adminEq.room")} {eq.roomNo}</div>
                   </td>
                   <td style={tdStyle}>
                     <div style={{ fontSize: "14px", fontWeight: "600" }}>{eq.quantity} / {eq.faultyCount}</div>
@@ -200,7 +200,7 @@ function AdminEquipmentPage() {
                       style={{ border: "none", background: statusStyle[eq.status]?.bg || "#f3f4f6",
                         color: statusStyle[eq.status]?.text || "#374151",
                         padding: "4px 8px", borderRadius: "8px", fontWeight: "700", fontSize: "12px", cursor: "pointer" }}>
-                      {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
+                      {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{t("status." + s)}</option>)}
                     </select>
                   </td>
                   <td style={{ ...tdStyle, display: "flex", gap: "8px" }}>

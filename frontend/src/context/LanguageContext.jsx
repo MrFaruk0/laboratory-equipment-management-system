@@ -1,5 +1,19 @@
 import { createContext, useContext, useState } from "react";
 
+// Equipment & Lab name translations (Turkish → English)
+const entityTranslations = {
+  // Labs (Laboratuvarlar)
+  "Elektronik Lab": "Electronics Lab",
+  "Bilgisayar Lab": "Computer Lab",
+  // Equipment (Ekipmanlar)
+  "Osiloskop": "Oscilloscope",
+  "Multimetre": "Multimeter",
+  "Raspberry Pi Kit": "Raspberry Pi Kit",
+  "Arduino Kit": "Arduino Kit",
+  // Buildings
+  "Mühendislik Binası": "Engineering Building",
+};
+
 const translations = {
   en: {
     // Sidebar
@@ -123,6 +137,19 @@ const translations = {
     "adminDash.modalCols.email": "Email",
     "adminDash.modalCols.role": "Role",
     "adminDash.failedLoad": "Failed to load items",
+
+    // Status & Role Translations
+    "status.available": "Available",
+    "status.in_use": "In Use",
+    "status.maintenance": "Maintenance",
+    "status.faulty": "Faulty",
+    "status.active": "Active",
+    "status.completed": "Completed",
+    "status.cancelled": "Cancelled",
+    "role.student": "Student",
+    "role.assistant": "Assistant",
+    "role.technician": "Technician",
+    "role.admin": "Admin",
 
     // Admin Equipment
     "adminEq.title": "Equipment Management",
@@ -329,6 +356,19 @@ const translations = {
     "adminDash.modalCols.role": "Rol",
     "adminDash.failedLoad": "Öğeler yüklenemedi",
 
+    // Status & Role Translations
+    "status.available": "Mevcut",
+    "status.in_use": "Kullanımda",
+    "status.maintenance": "Bakımda",
+    "status.faulty": "Arızalı",
+    "status.active": "Aktif",
+    "status.completed": "Tamamlandı",
+    "status.cancelled": "İptal Edildi",
+    "role.student": "Öğrenci",
+    "role.assistant": "Asistan",
+    "role.technician": "Teknisyen",
+    "role.admin": "Yönetici",
+
     // Admin Equipment
     "adminEq.title": "Ekipman Yönetimi",
     "adminEq.subtitle": "Laboratuvar ekipmanlarını ekleyin, düzenleyin ve yönetin.",
@@ -428,8 +468,14 @@ export function LanguageProvider({ children }) {
     return text;
   };
 
+  // Translate equipment/lab names from Turkish to current language
+  const translateEntity = (turkishName) => {
+    if (language === "tr") return turkishName;
+    return entityTranslations[turkishName] || turkishName;
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, toggleLanguage, t }}>
+    <LanguageContext.Provider value={{ language, toggleLanguage, t, translateEntity }}>
       {children}
     </LanguageContext.Provider>
   );

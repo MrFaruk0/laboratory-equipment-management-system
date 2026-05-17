@@ -4,7 +4,7 @@ import { getReservations } from "../services/reservationService";
 import { useLanguage } from "../context/LanguageContext";
 
 function MyReservationsPage() {
-  const { t } = useLanguage();
+  const { t, translateEntity } = useLanguage();
   const [showPastReservations, setShowPastReservations] = useState(false);
   const [reservations, setReservations] = useState({ active: [], past: [] });
   const [loading, setLoading] = useState(true);
@@ -87,22 +87,22 @@ function MyReservationsPage() {
               {displayedReservations.length > 0 ? (
                 displayedReservations.map((reservation, index) => {
                   const isPastReservation = index >= reservations.active.length && showPastReservations;
+                  const status = reservation.status || (isPastReservation ? "past" : "active");
+                  const statusKey = status === "past" ? "myRes.past" : status === "active" ? "myRes.active" : `status.${status}`;
+                  const isCancelled = status === "cancelled";
+                  const badgeStyle = isCancelled ? cancelledBadgeStyle : isPastReservation ? pastBadgeStyle : activeBadgeStyle;
                   return (
                     <tr
                       key={reservation.id}
-                      style={isPastReservation ? pastRowStyle : {}}
+                      style={isPastReservation || isCancelled ? pastRowStyle : {}}
                     >
-                      <td style={tableCellStyle}>{reservation.equipment}</td>
-                      <td style={tableCellStyle}>{reservation.location}</td>
+                      <td style={tableCellStyle}>{translateEntity(reservation.equipment)}</td>
+                      <td style={tableCellStyle}>{translateEntity(reservation.location)}</td>
                       <td style={tableCellStyle}>{formatDateTime(reservation.startTime)}</td>
                       <td style={tableCellStyle}>{formatDateTime(reservation.endTime)}</td>
                       <td style={tableCellStyle}>
-                        <span
-                          style={
-                            isPastReservation ? pastBadgeStyle : activeBadgeStyle
-                          }
-                        >
-                          {isPastReservation ? t("myRes.past") : t("myRes.active")}
+                        <span style={badgeStyle}>
+                          {t(statusKey)}
                         </span>
                       </td>
                     </tr>
@@ -169,6 +169,15 @@ const activeBadgeStyle = {
   borderRadius: "999px",
   backgroundColor: "#dcfce7",
   color: "#166534",
+  fontSize: "12px",
+  fontWeight: "bold",
+};
+
+const cancelledBadgeStyle = {
+  padding: "4px 10px",
+  borderRadius: "999px",
+  backgroundColor: "#fee2e2",
+  color: "#b91c1c",
   fontSize: "12px",
   fontWeight: "bold",
 };
